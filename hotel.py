@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
 import sqlite3
-import re
+from tkinter import filedialog
 
 def main():
     win = Tk()
@@ -74,6 +74,9 @@ class Window2:
         self.win = win
         self.win.title("Hotel Management System")
         self.win.geometry("1350x750")
+
+        self.labels = list()
+        self.prices = list()
 
         self.name = StringVar()
         self.contact = StringVar()
@@ -151,10 +154,10 @@ class Window2:
         self.btn_total = Button(self.BtnFrame, text="Total", font=('Arial', 16), bd=6, width=10, command=self.calculate_total)
         self.btn_total.grid(row=1, column=1, padx=5, pady=5)
 
-        self.btn_reset = Button(self.BtnFrame, text="Reset", font=('Arial', 16), bd=6, width=10)
+        self.btn_reset = Button(self.BtnFrame, text="Reset", font=('Arial', 16), bd=6, width=10,command=self.reset_bill)
         self.btn_reset.grid(row=2, column=0, padx=5, pady=5)
 
-        self.btn_save = Button(self.BtnFrame, text="Save", font=('Arial', 16), bd=6, width=10)
+        self.btn_save = Button(self.BtnFrame, text="Save", font=('Arial', 16), bd=6, width=10,command=self.save_bill)
         self.btn_save.grid(row=2, column=1, padx=5, pady=5)
 
         self.bill_frame = LabelFrame(self.win, text="Bill Area", font=('Arial', 16), bg="lightgrey", bd=8, relief=GROOVE)
@@ -167,10 +170,28 @@ class Window2:
         self.bill_text.pack(fill=BOTH, expand=True)
 
         self.default_bill()
-
+        
     def get_date(self):
         current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.date.set(current_date)
+        
+    def save_bill(self):
+        bill_content = self.bill_text.get(1.0, END)
+
+        if not bill_content.strip():
+            messagebox.showwarning("Save Warning", "No bill to save.")
+            return
+
+        file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+
+        if file_path:
+            with open(file_path, 'w') as file:
+                file.write(bill_content)
+
+            messagebox.showinfo("Save Successful", f"Bill saved to {file_path}")
+
+        # Clear the entries and reset the final cost after saving
+        self.reset_bill()
 
     def default_bill(self):
         self.bill_text.insert(END, "\t\t\t\tVJTI Canteen")
@@ -215,12 +236,25 @@ class Window2:
 
         self.bill_text.insert(END, f"\n\t{dish}\t\t{cost}\t\t{quantity}\t\t{total_cost}")
 
+
     def calculate_total(self):
         self.bill_text.insert(END, f"\n\n\t\t\tTotal Cost={self.final_cost}")
+        
+    def reset_bill(self):
+        
+        self.final_cost = 0
+        
+        # Clear entries
+        self.name.set("")
+        self.contact.set("")
+        self.date.set("")
+        self.selected_dish.set("")
+        self.item_quantity.set("")
+        self.item_price.set("")
+
+        # Clear the bill text
+        self.bill_text.delete(1.0, END)
 
 
-# Run the main function
 main()
-
-
 
