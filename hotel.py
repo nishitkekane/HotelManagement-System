@@ -4,6 +4,8 @@ from tkinter import messagebox
 from datetime import datetime
 import sqlite3
 from tkinter import filedialog
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 def main():
     win = Tk()
@@ -170,6 +172,17 @@ class Window2:
         self.bill_text.pack(fill=BOTH, expand=True)
 
         self.default_bill()
+        self.pie_chart_frame = LabelFrame(self.win, text="Pie Chart", font=('Arial', 16), bg="lightgrey", bd=8, relief=GROOVE)
+        self.pie_chart_frame.place(x=20, y=375, height=350, width=300)
+
+        # Initialize an empty figure for the pie chart
+        self.pie_chart_fig, self.pie_chart_ax = plt.subplots()
+        self.pie_chart_canvas = FigureCanvasTkAgg(self.pie_chart_fig, master=self.pie_chart_frame)
+        self.pie_chart_canvas.get_tk_widget().pack(fill=BOTH, expand=True)
+
+        # List to store the data for the pie chart
+        self.pie_chart_data = []
+
         
     def get_date(self):
         current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -233,11 +246,19 @@ class Window2:
 
         total_cost = int(quantity) * int(cost)
         self.final_cost += total_cost
+        
+        # Append data to the pie chart list
+        self.pie_chart_data.append((dish, total_cost))
+
+        # Update the pie chart
+        self.update_pie_chart()
 
         self.bill_text.insert(END, f"\n\t{dish}\t\t{cost}\t\t{quantity}\t\t{total_cost}")
 
 
     def calculate_total(self):
+        self.pie_chart_data.append(("Total Cost", self.final_cost))
+        self.update_pie_chart()
         self.bill_text.insert(END, f"\n\n\t\t\tTotal Cost={self.final_cost}")
         
     def reset_bill(self):
@@ -254,6 +275,21 @@ class Window2:
 
         # Clear the bill text
         self.bill_text.delete(1.0, END)
+
+  def update_pie_chart(self):
+        # Clear previous pie chart
+        self.pie_chart_ax.clear()
+
+        # Prepare data for the pie chart
+        labels = [item[0] for item in self.pie_chart_data]
+        costs = [item[1] for item in self.pie_chart_data]
+
+        # Create and display the pie chart
+        self.pie_chart_ax.pie(costs, labels=labels, autopct='%1.1f%%', startangle=90)
+        self.pie_chart_ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+        # Redraw the canvas
+        self.pie_chart_canvas.draw()
 
 
 main()
